@@ -1,10 +1,10 @@
-﻿namespace XmlRepository.Base.Data
-{
-    using System.Collections.Generic;
+﻿using System.Collections.Generic;
 
-    public interface IDataSource<T>
+namespace XmlRepository.Base.Data
+{
+    public interface IDataSource<TEntity>
     {
-        IEnumerable<T> Read();
-        bool Write();
+        bool Commit(IEnumerable<TEntity> entities);
+        SourceEntity<TEntity> Read();
     }
 }

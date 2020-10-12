@@ -23,6 +23,7 @@
         private static IServiceCollection AddApplicationDependencies(this IServiceCollection services, IConfiguration configuration)
         {
             services.AddSingleton<IDataSource<Book>, XmlDataSource<Book>>();
+            services.AddSingleton<IDataSource<Book>, XmlDataSource<Book>>();
 
             return services;
         }

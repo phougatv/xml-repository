@@ -5,7 +5,7 @@
     using static XmlRepository.Constant.XmlBaseEntity;
 
     [Serializable]
-    public class XmlBaseEntity
+    public class BaseEntity
     {
         [XmlAttribute(XmlAttribute_Id)]
         public string Id { get; set; }

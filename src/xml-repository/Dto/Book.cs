@@ -6,7 +6,7 @@
     using static XmlRepository.Constant.Book;
 
     [XmlRoot(XmlRoot)]
-    public class Book : XmlBaseEntity
+    public class Book : BaseEntity
     {
         [XmlElement(XmlElement_Author)]
         public string Author { get; set; }

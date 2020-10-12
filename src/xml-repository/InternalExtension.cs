@@ -3,10 +3,12 @@
     using Microsoft.Extensions.Configuration;
     using System;
     using System.Collections.Generic;
+    using System.IO;
     using System.Reflection;
     using System.Xml.Linq;
     using System.Xml.Serialization;
     using XmlRepository.Base;
+    using XmlRepository.Configuration;
 
     internal static class InternalExtension
     {
@@ -25,7 +27,7 @@
         /// <typeparam name="T"></typeparam>
         /// <param name="entity"></param>
         /// <param name="xElement"></param>
-        internal static void Bind<T>(this T entity, XElement xElement) where T : XmlBaseEntity
+        internal static void Bind<T>(this T entity, XElement xElement) where T : BaseEntity
         {
             BindAttributes(entity, xElement);
             BindElements(entity, xElement);
@@ -37,7 +39,7 @@
         /// <typeparam name="T"></typeparam>
         /// <param name="entity"></param>
         /// <param name="xElement"></param>
-        private static void BindAttributes<T>(this T entity, XElement xElement) where T : XmlBaseEntity
+        private static void BindAttributes<T>(this T entity, XElement xElement) where T : BaseEntity
         {
             var map = GetXmlAttributeAttributePropertyInfoMap(entity);
             foreach (var kvp in map)
@@ -53,7 +55,7 @@
         /// <typeparam name="T"></typeparam>
         /// <param name="entity"></param>
         /// <param name="xElement"></param>
-        private static void BindElements<T>(this T entity, XElement xElement) where T : XmlBaseEntity
+        private static void BindElements<T>(this T entity, XElement xElement) where T : BaseEntity
         {
             var map = entity.GetXmlElementAttributePropertyInfoMap();
             foreach (var kvp in map)
@@ -68,7 +70,7 @@
         /// </summary>
         /// <typeparam name="T">The type of entity.</typeparam>
         /// <returns></returns>
-        internal static string GetXmlRootAttribute<T>() where T : XmlBaseEntity
+        internal static string GetXmlRootAttribute<T>() where T : BaseEntity
         {
             var attributes = Attribute.GetCustomAttributes(typeof(T));
             foreach (var attr in attributes)
@@ -86,7 +88,7 @@
         /// <typeparam name="T"></typeparam>
         /// <param name="entity"></param>
         /// <returns></returns>
-        internal static IDictionary<string, PropertyInfo> GetXmlAttributeAttributePropertyInfoMap<T>(this T entity) where T : XmlBaseEntity
+        internal static IDictionary<string, PropertyInfo> GetXmlAttributeAttributePropertyInfoMap<T>(this T entity) where T : BaseEntity
         {
             var attributeAttributePropertyMap = new Dictionary<string, PropertyInfo>();
             foreach (var propertyInfo in entity.GetType().GetProperties())
@@ -108,7 +110,7 @@
         /// <typeparam name="T"></typeparam>
         /// <param name="entity"></param>
         /// <returns></returns>
-        internal static IDictionary<string, PropertyInfo> GetXmlElementAttributePropertyInfoMap<T>(this T entity) where T : XmlBaseEntity
+        internal static IDictionary<string, PropertyInfo> GetXmlElementAttributePropertyInfoMap<T>(this T entity) where T : BaseEntity
         {
             var elementAttributePropertyMap = new Dictionary<string, PropertyInfo>();
             foreach (var propertyInfo in entity.GetType().GetProperties())
@@ -122,6 +124,36 @@
             }
 
             return elementAttributePropertyMap;
+        }
+
+        /// <summary>
+        /// TODO: Add other exceptions
+        /// Gets fully qualified filepath with extension
+        /// </summary>
+        /// <param name="dataSource"></param>
+        /// <returns></returns>
+        internal static string GetFullFilePath(this DataSource dataSource)
+        {
+            if (dataSource is null)
+                throw new ArgumentNullException(nameof(dataSource));
+
+            return Path.Combine(dataSource.Xml.FilePath, dataSource.Xml.FileName);
+        }
+
+        internal static string GetFilePath(this DataSource dataSource)
+        {
+            if (dataSource is null)
+                throw new ArgumentNullException(nameof(dataSource));
+
+            return dataSource.Xml.FilePath;
+        }
+
+        internal static string GetFileName(this DataSource dataSource)
+        {
+            if (dataSource is null)
+                throw new ArgumentNullException(nameof(dataSource));
+
+            return dataSource.Xml.FileName;
         }
     }
 }
