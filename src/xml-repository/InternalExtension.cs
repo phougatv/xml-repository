@@ -4,6 +4,7 @@
     using System;
     using System.Collections.Generic;
     using System.IO;
+    using System.Linq;
     using System.Reflection;
     using System.Xml.Linq;
     using System.Xml.Serialization;
@@ -12,6 +13,95 @@
 
     internal static class InternalExtension
     {
+        internal static bool IsClass(this object entity)
+        {
+            if (entity is null)
+                throw new ArgumentNullException(nameof(entity));
+
+            return entity.GetType().IsClass;
+        }
+
+        internal static bool IsStringType(this object entity)
+        {
+            if (entity is null)
+                throw new ArgumentNullException(nameof(entity));
+
+            return entity.GetType() == typeof(string);
+        }
+
+        internal static IEnumerable<PropertyInfo> GetPropertiesInfo(this object entity)
+        {
+            if (entity is null)
+                throw new ArgumentNullException(nameof(entity));
+
+            return entity.GetType().GetProperties();
+        }
+
+        internal static IEnumerable<string> GetPropertyNames(this object entity)
+        {
+            if (entity is null)
+                throw new ArgumentNullException(nameof(entity));
+
+            return entity.GetPropertiesInfo().Select(_ => _.Name);
+        }
+
+        internal static object? GetPropertyValue(this object entity, string propertyName)
+        {
+            if (entity is null)
+                throw new ArgumentNullException(nameof(entity));
+
+            return entity.GetType().GetProperty(propertyName).GetValue(entity);
+        }
+
+        internal static string GetTypeName(this object entity)
+        {
+            if (entity is null)
+                throw new ArgumentNullException(nameof(entity));
+
+            return entity.GetType().Name;
+        }
+
+        internal static string GetTypeNameInLower(this object entity)
+        {
+            if (entity is null)
+                throw new ArgumentNullException(nameof(entity));
+
+            return GetTypeName(entity).ToLower();
+        }
+
+        internal static XElement GetXElement(this object entity)
+        {
+            if (entity is null)
+                throw new ArgumentNullException(nameof(entity));
+
+            var propertyNames = entity.GetPropertyNames();
+            if (!propertyNames.Any())
+                return entity.GetXElement(entity);
+
+            var xElements = new List<XElement>();
+            foreach (var name in propertyNames)
+            {
+                var propertyValue = entity.GetPropertyValue(name);
+                if (propertyValue.IsClass() && !propertyValue.IsStringType())
+                    xElements.Add(GetXElement(propertyValue));                  //recursion
+                else
+                    xElements.Add(GetXElement(name.ToLower(), propertyValue));
+            }
+
+            return entity.GetXElement(xElements);
+        }
+
+        internal static XElement GetXElement(this object entity, object content)
+        {
+            if (entity is null)
+                throw new ArgumentNullException(nameof(entity));
+            if (content is null)
+                throw new ArgumentNullException(nameof(content));
+
+            var xElement = new XElement(entity.GetTypeNameInLower(), content);
+            return xElement;
+        }
+
         /// <summary>
         /// 
         /// </summary>

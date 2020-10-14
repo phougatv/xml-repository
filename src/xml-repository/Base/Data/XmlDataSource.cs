@@ -7,6 +7,7 @@
     using System;
     using System.Collections.Generic;
     using System.Linq;
+    using System.Reflection;
     using System.Xml;
     using System.Xml.Linq;
     using XmlRepository.Configuration;
@@ -18,6 +19,7 @@
         private readonly DataSource _dataSource;
         private readonly List<string> _errors = new List<string>();
         private List<TEntity> _entities;
+        private List<XElement> _xElements;
         #endregion
 
         #region Private Properties
@@ -31,7 +33,7 @@
             {
                 return xNode =>
                 {
-                    var entity = JsonConvert.DeserializeObject<TEntity>(
+                    return JsonConvert.DeserializeObject<TEntity>(
                         JObject.Parse(JsonConvert.SerializeXNode(xNode))[typeof(TEntity).Name.ToLower().Trim()].ToString()
                         , new JsonSerializerSettings
                         {
@@ -41,11 +43,12 @@
                                 args.ErrorContext.Handled = true;
                             }
                         }) ?? default;
-
-                    return entity;
                 };
             }
         }
+
+        private Type EntityType => typeof(TEntity);
+        private PropertyInfo[] EntityPropertyInfo => EntityType.GetProperties();
         #endregion
 
         #region Ctors
@@ -63,7 +66,7 @@
         /// <summary> Writes the data to the XML file. </summary>
         /// <param name="entities"> The <see cref="TEntity"/>. </param>
         /// <returns> True, if the the data was successfully writtent to the file. False otherwise. </returns>
-        public bool Commit(IEnumerable<TEntity> entities)
+        public bool Write(IEnumerable<TEntity> entities)
             => InternalCommit(entities);
 
         /// <summary> Reads the entities collection from memory. </summary>
@@ -80,6 +83,15 @@
         #region Private Methods
         private bool InternalCommit(IEnumerable<TEntity> entities)
         {
+            if (entities is null)
+                throw new ArgumentNullException(nameof(entities));
+
+            _xElements = new List<XElement>();
+            foreach(var entity in entities)
+            {
+                _xElements.Add(entity.GetXElement());
+            }
+
             return true;
         }
 
